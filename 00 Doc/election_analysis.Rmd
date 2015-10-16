@@ -1,3 +1,5 @@
+
+
 ---
 title: "2008 vs. 2012 Presidential Election Analysis"
 output: html_document
@@ -44,3 +46,155 @@ require("jsonlite")
 require("RCurl")
 source('../03 Data Visualization/PercentChangeVisualization.R', echo = TRUE)
 ```
+
+
+**Reworking the data**
+We suspected that one of the causes for the unreal information found in the previous graph is the original state of the graph. We found it on a government site on an excel sheet, and tried to just save that as a csv and use that data straight. This proved difficult, so we went into the data to try and modify it to get rid of some of the unnecessary information.
+The new data we used follows
+```{r}
+require("jsonlite")
+require("RCurl")
+df2008 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2008 where CANDIDATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2008)
+df2012 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2012 where STATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2012)
+```
+here are the heads of our reformed data tables
+```{r}
+require("jsonlite")
+require("RCurl")
+df2008 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2008 where CANDIDATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2008)
+df2012 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2012 where STATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2012)
+
+head(df2012)
+head(df2008)
+```
+
+
+**Wrangling the New Data**
+Once we've gotten this data, we need to do a few things
+First of all we need to turn all the vote counts of df 2012 into actual numbers,
+we'd also like to get a total number of votes for each state, which we will need for later analysis
+```{r}
+require("jsonlite")
+require("RCurl")
+df2008 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2008 where CANDIDATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2008)
+df2012 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2012 where STATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2012)
+
+df2012$VOTESD<-as.numeric(gsub(",","",as.character(df2012$DEMOCRATVOTES)))
+df2012$TOTPOP<-as.numeric(gsub(",","",as.character(df2012$TOTALPOPULATION)))
+df2012$VOTESI<-as.numeric(gsub(",","",as.character(df2012$OTHERVOTES)))
+df2012$VOTESD<-as.numeric(gsub(",","",as.character(df2012$DEMOCRATVOTES)))
+df2012$VOTESR<-as.numeric(gsub(",","",as.character(df2012$REPUBLICANVOTES)))
+df2012<-dplyr::mutate(df2012,PercentVoters=as.numeric((VOTESI+VOTESR+VOTESD)*100/TOTPOP))
+```
+
+After that, we start working with df2008
+It has some strange quirks, so first we take the commas out of the vote number
+After that we define a new dataframe, finalDF so we can put the data of df2008 into more useful collums
+We also decided to add the State population to this table, which we'll use for calculation later
+(Note, we removed the District of Columbia because it was no in the other data set, and We removed New York because three different values were given in the original
+Data file)
+```{r}
+require("jsonlite")
+require("RCurl")
+df2008 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2008 where CANDIDATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2008)
+df2012 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2012 where STATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2012)
+
+df2012$VOTESD<-as.numeric(gsub(",","",as.character(df2012$DEMOCRATVOTES)))
+df2012$TOTPOP<-as.numeric(gsub(",","",as.character(df2012$TOTALPOPULATION)))
+df2012$VOTESI<-as.numeric(gsub(",","",as.character(df2012$OTHERVOTES)))
+df2012$VOTESD<-as.numeric(gsub(",","",as.character(df2012$DEMOCRATVOTES)))
+df2012$VOTESR<-as.numeric(gsub(",","",as.character(df2012$REPUBLICANVOTES)))
+df2012<-dplyr::mutate(df2012,PercentVoters=as.numeric((VOTESI+VOTESR+VOTESD)*100/TOTPOP))
+
+df2008$NUMVOTES<-as.numeric(gsub(",","",as.character(df2008$VOTES)))
+finalDF<-data.frame(dplyr::filter(df2008,CANDIDATE=="Obama",STATE!="New York",STATE!="District of Columbia"))
+finalDF$NumVotesR<-dplyr::filter(df2008,CANDIDATE=="McCain",STATE!="New York",STATE!="District of Columbia")$NUMVOTES
+finalDF$TOTPOP<-as.numeric(filter(df2012,STATE!="New York")$TOTPOP)
+finalDF<-dplyr::mutate(finalDF,PercentVoters2008=as.numeric((NumVotesR+NUMVOTES)*100/TOTPOP))
+
+```
+
+The headers for the datatables we are using now look like
+```{r}
+require("jsonlite")
+require("RCurl")
+df2008 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2008 where CANDIDATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2008)
+df2012 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2012 where STATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2012)
+
+df2012$VOTESD<-as.numeric(gsub(",","",as.character(df2012$DEMOCRATVOTES)))
+df2012$TOTPOP<-as.numeric(gsub(",","",as.character(df2012$TOTALPOPULATION)))
+df2012$VOTESI<-as.numeric(gsub(",","",as.character(df2012$OTHERVOTES)))
+df2012$VOTESD<-as.numeric(gsub(",","",as.character(df2012$DEMOCRATVOTES)))
+df2012$VOTESR<-as.numeric(gsub(",","",as.character(df2012$REPUBLICANVOTES)))
+df2012<-dplyr::mutate(df2012,PercentVoters=as.numeric((VOTESI+VOTESR+VOTESD)*100/TOTPOP))
+
+df2008$NUMVOTES<-as.numeric(gsub(",","",as.character(df2008$VOTES)))
+finalDF<-data.frame(dplyr::filter(df2008,CANDIDATE=="Obama",STATE!="New York",STATE!="District of Columbia"))
+finalDF$NumVotesR<-dplyr::filter(df2008,CANDIDATE=="McCain",STATE!="New York",STATE!="District of Columbia")$NUMVOTES
+finalDF$TOTPOP<-as.numeric(filter(df2012,STATE!="New York")$TOTPOP)
+finalDF<-dplyr::mutate(finalDF,PercentVoters2008=as.numeric((NumVotesR+NUMVOTES)*100/TOTPOP))
+
+head(df2012)
+head(finalDF)
+```
+Now that we've got these two sets of data organzied by state, we can join them
+```{r}
+require("jsonlite")
+require("RCurl")
+df2008 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2008 where CANDIDATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2008)
+df2012 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2012 where STATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
+head(df2012)
+
+df2012$VOTESD<-as.numeric(gsub(",","",as.character(df2012$DEMOCRATVOTES)))
+df2012$TOTPOP<-as.numeric(gsub(",","",as.character(df2012$TOTALPOPULATION)))
+df2012$VOTESI<-as.numeric(gsub(",","",as.character(df2012$OTHERVOTES)))
+df2012$VOTESD<-as.numeric(gsub(",","",as.character(df2012$DEMOCRATVOTES)))
+df2012$VOTESR<-as.numeric(gsub(",","",as.character(df2012$REPUBLICANVOTES)))
+df2012<-dplyr::mutate(df2012,PercentVoters=as.numeric((VOTESI+VOTESR+VOTESD)*100/TOTPOP))
+
+df2008$NUMVOTES<-as.numeric(gsub(",","",as.character(df2008$VOTES)))
+finalDF<-data.frame(dplyr::filter(df2008,CANDIDATE=="Obama",STATE!="New York",STATE!="District of Columbia"))
+finalDF$NumVotesR<-dplyr::filter(df2008,CANDIDATE=="McCain",STATE!="New York",STATE!="District of Columbia")$NUMVOTES
+finalDF$TOTPOP<-as.numeric(filter(df2012,STATE!="New York")$TOTPOP)
+finalDF<-dplyr::mutate(finalDF,PercentVoters2008=as.numeric((NumVotesR+NUMVOTES)*100/TOTPOP))
+
+dfVisualizer<-dplyr::inner_join(finalDF,df2012, by="STATE")
+dfVisualizer<-dplyr::mutate(dfVisualizer,PercentVoters2008=as.numeric((NumVotesR+NUMVOTES)*100/TOTPOP.y))
+```
+We also took the liberty of calculating the perscent of voters in 2008 here
+
+Now we want to start visualization using dfVisualizer
+**Visualization using the new data**
+We wanted to get 2 graphs at first with this data. 
+First we wanted to compare the election results between the two years, then we wanted to look at the voter particpation per state
+Those Graphs are below.
+```{r}
+require("jsonlite")
+require("RCurl")
+source('../03 Data Visualization/VonderHaarsDataVisualization.R', echo = TRUE)
+```
+
+These graphs have several interesting, nonobvious components. First of all, it seems that on the whole, the Democrats either experienced a slight increase
+A sharp decline, or held steady in the polls. There were no states where they had very sharp increases. This is likely because Obama, as an incumbant,
+had lost a lot of his initial luster as a candidate. On the other hand, the republicans made some notisable increases in a few states, implying
+a return of those states to their natural political color. However, we can't confirm this without seeing at least a few more election results, and that is beyond the scope
+of this process.
+Overall, it seems like voter particpation is slightly down on this graph.
+
+The second graph aslo has some interesting stories to tell. In very populace states such as California or Texas, Voter particpation is at its lowest.
+If we compare the two graphs, its appears that neither of those states had "close" elections. We can thus say that Low voter particpation and Blowout elections 
+are correlated, althought we can't say which causes which. I would guess that blow out elections cause lowe particpation, as people feel that their vote does not count,
+but I do not have hard evidence to support this. In the same way, Battleground states like Florida and Ohio have very high voter particatpion, further strengthening
+the idea of correlation. Again though, more years would allow us to draw better conclusions. I'm very interested what the particpation of say Nixon's re-election,
+where he won 48 states, was compared to the average election.
