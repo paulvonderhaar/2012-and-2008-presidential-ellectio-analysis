@@ -17,4 +17,4 @@ FROM US_ELECTION_RESULTS
 
 df <- dplyr::full_join(df1, df2, by="STATE_ABBREVIATION")
 
-df %>% mutate(average = ((VOTES_2012 - VOTES_2008) / VOTES_2008) * 100) %>% View
+df %>% mutate(average = ((VOTES_2012 - VOTES_2008) / VOTES_2008) * 100) %>% tbl_df
