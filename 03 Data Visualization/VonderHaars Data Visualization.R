@@ -48,9 +48,9 @@ dfVisualizer<-dplyr::inner_join(finalDF,df2012, by="STATE")
 dfVisualizer<-dplyr::mutate(dfVisualizer,PercentVoters2008=as.numeric((NumVotesR+NUMVOTES)*100/TOTPOP.y))
 
 #Wanted to find the turnout for 2012, was unable. I believe the votes are cast as a string, and I don't know how to recast them
-dplyr::mutate(df2012,PercentVoters=as.numberic(TOTALVOTES/TOTALPOPULATION))
+#dplyr::mutate(df2012,PercentVoters=as.numeric(TOTALVOTES/TOTALPOPULATION))
 #2008 Turnout, again, wasn't able to because I believe the votes are in string form.
-dplyr::mutate(df2012,PercentVoters08=(ObamaVotes+MccainVotes/TotalPopulation))
+#dplyr::mutate(df2012,PercentVoters08=(ObamaVotes+MccainVotes/TotalPopulation))
 
 #Had trouble making the graph do what I wanted. When I told it to take democrat votes as an integer, the max value was around 50, which doesn't
 #Make any sense to me. If the string can be recast as an int, I think i could figure this out. I'll look it up, email the professor, etc, the afternoon
@@ -59,8 +59,8 @@ dplyr::mutate(df2012,PercentVoters08=(ObamaVotes+MccainVotes/TotalPopulation))
 require(extrafont)
 ggplot(df2012, 
        aes(STATE, y = value, color = variable)) + 
-  geom_point(aes(y = as.numberic(VOTESD), col = "Democrat Votes")) + 
-  geom_point(aes(y = as.numeric(VOTESR) col = "Republican Votes"))
+  geom_point(aes(y = as.numeric(VOTESD), col = "Democrat Votes")) + 
+  geom_point(aes(y = as.numeric(VOTESR), col = "Republican Votes"))
 
 
 #This second graph, I don't understand what it does. It takes the 
