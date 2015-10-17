@@ -50,16 +50,7 @@ source('../03 Data Visualization/PercentChangeVisualization.R', echo = TRUE)
 
 **Reworking the data**
 We suspected that one of the causes for the unreal information found in the previous graph is the original state of the graph. We found it on a government site on an excel sheet, and tried to just save that as a csv and use that data straight. This proved difficult, so we went into the data to try and modify it to get rid of some of the unnecessary information.
-The new data we used follows
-```{r}
-require("jsonlite")
-require("RCurl")
-df2008 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2008 where CANDIDATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
-head(df2008)
-df2012 <- data.frame(fromJSON(getURL(URLencode('129.152.144.84:5001/rest/native/?query="select * from ELECTIONOF2012 where STATE is not null"'),httpheader=c(DB='jdbc:oracle:thin:@129.152.144.84:1521/PDBF15DV.usuniversi01134.oraclecloud.internal', USER='cs329e_pmv347', PASS='orcl_pmv347', MODE='native_mode', MODEL='model', returnDimensions = 'False', returnFor = 'JSON'), verbose = TRUE), ))
-head(df2012)
-```
-here are the heads of our reformed data tables
+Here are the heads of our reformed data tables
 ```{r}
 require("jsonlite")
 require("RCurl")
