@@ -1,4 +1,4 @@
-# 2012-and-2008-presidential-ellection-analysis
+# 2012-and-2008-presidential-election-analysis
 R visuilization that is took data from the 2008 and 2012 presidential elections to do country wide analysis on what changed.
 The analysis was divided into 3 parts
 1: Preparing the data, the 2008 and 2012 data had significant differences that needed to be resolved with each other first. T
